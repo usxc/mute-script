@@ -5,6 +5,7 @@ import time
 import threading
 import json
 import os
+import re
 from datetime import datetime
 from mute_control import mute, unmute
 
@@ -26,10 +27,15 @@ def load_schedule():
                 return []
     return []
 
+def is_valid_time_format(time_str):
+    """ HH:MM のフォーマットチェック（先頭ゼロ必須）"""
+    time_pattern = r"^(?:[01]\d|2[0-3]):[0-5]\d$"  # 00:00 ～ 23:59 のみ許可
+    return re.fullmatch(time_pattern, time_str) is not None  # 厳密なチェック
+
 def add_schedule():
     """時間帯をスケジュールに追加"""
-    start_time = start_entry.get()
-    end_time = end_entry.get()
+    start_time = start_entry.get().strip()
+    end_time = end_entry.get().strip()
 
     if start_time and end_time:
         try:
@@ -40,6 +46,11 @@ def add_schedule():
             messagebox.showerror("エラー", "時間のフォーマットは HH:MM の形式で入力してください！")
             return
         
+        # ここでフォーマットチェックを追加
+        if not is_valid_time_format(start_time) or not is_valid_time_format(end_time):
+            messagebox.showerror("エラー", "時間のフォーマットは HH:MM の形式で入力してください！（例: 01:02）")
+            return
+    
         # 同じ時間の設定チェック
         if start_time == end_time:
             messagebox.showerror("エラー", "開始時間と終了時間は異なる時間に設定してください！")
